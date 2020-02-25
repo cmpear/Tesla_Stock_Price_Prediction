@@ -131,7 +131,7 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
     y_hat_linear15_test = y_hat_linear15[ bPar['test_start'] - bPar['train_start'] : bPar['test_end'] - bPar['train_start'] ]
     y_test15 = X_plot[ bPar['test_start'] - bPar['train_start'] +15 : bPar['test_end'] - bPar['train_start'] + 15]
 # HERE, UNFINISHED, HERE HERE HERE
-    res15 = y_test30 - y_hat_linear15_test
+    res15 = y_test15 - y_hat_linear15_test
     R2_15 = 1 - sum( (res15) ** 2 ) / sum( (y_test15 - np.mean( y_test15 ) ) ** 2 )
 
     y_hat_linear1_test = y_hat_linear1[ bPar['test_start'] - bPar['train_start'] : bPar['test_end'] - bPar['train_start'] ]
@@ -156,35 +156,62 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
         plt.title('Predicted vs Real Daily Price Change')
         plt.xlabel('Market Days After IPO')
         plt.ylabel('Closing - Opening Price')
+        plt.axvline(x = bPar['train_end'] - bPar['train_start'])
+        plt.axvline(x = bPar['test_end'] - bPar['train_start'])
+
+        plt.text(x = (bPar['train_start'] + bPar['train_end'])/2, y = .20, s = 'training')
+        plt.text(x = bPar['test_start'], y = .20, s = 'testing')
+        plt.text(x = (bPar['future_start'] *2 + bPar['future_end'])/3, y = .20, s = 'future')
+
+        plt.title('Predicted vs Real Prices')
+        plt.xlabel('Market Days After IPO')
+        plt.ylabel('Daily Price Change')
+        plt.legend()
+
+        ensure_dir_exists(target_dir)
+        f_name0 = pre_name + 'Predictions.png'
+        target_dir0 = os.path.join(target_dir, f_name0 )
+        plt.savefig(target_dir0)
+        #plt.show()
+        plt.close()
     else:
-        plt.plot( range(15 + 750, 15+len(X_plot)), y_hat_linear15[750 : ].astype(float), color = 'blue', label = '15-day prediction')
+        plt.plot( range(15 + 750, 15+len(X_plot)), y_hat_linear15[750 : ].astype(float), color = 'blue',  label = '15-day prediction')
         plt.plot( range(30 + 750, 30+len(X_plot)), y_hat_linear30[750 : ].astype(float), color = 'green', label = '30-day prediction')
         plt.plot( range(0 + 750, len(X_plot)), X_plot[750:], color = 'red', label = 'Real Tesla Stock Price')
         plt.title('Predicted vs Real Prices')
         plt.xlabel('Market Days After IPO')
         plt.ylabel('Tesla Stock Price')
-    plt.axvline(x = bPar['train_end'] - bPar['train_start'])
-    plt.axvline(x = bPar['test_end'] - bPar['train_start'])
+        plt.axvline(x = bPar['train_end'] - bPar['train_start'])
+        plt.axvline(x = bPar['test_end'] - bPar['train_start'])
 
-    plt.text(x = (bPar['train_start'] + bPar['train_end'])/2, y = .20, s = 'training')
-    plt.text(x = bPar['test_start'], y = .20, s = 'testing')
-    plt.text(x = (bPar['future_start'] *2 + bPar['future_end'])/3, y = .20, s = 'future')
+        plt.text(x = (bPar['train_start'] + bPar['train_end'])/2, y = .20, s = 'training')
+        plt.text(x = bPar['test_start'], y = .20, s = 'testing')
+        plt.text(x = (bPar['future_start'] *2 + bPar['future_end'])/3, y = .20, s = 'future')
 
-    plt.title('Predicted vs Real Prices')
-    plt.xlabel('Market Days After IPO')
-    plt.ylabel('Tesla Stock Price')
-    plt.legend()
+        plt.title('Predicted vs Real Prices')
+        plt.xlabel('Market Days After IPO')
+        plt.ylabel('Tesla Stock Price')
+        plt.legend()
 
-    ensure_dir_exists(target_dir)
-    f_name0 = pre_name + 'Predictions.png'
-    target_dir0 = os.path.join(target_dir, f_name0 )
-    plt.savefig(target_dir0)
-    #plt.show()
+        ensure_dir_exists(target_dir)
+        f_name0 = pre_name + 'Predictions.png'
+        target_dir0 = os.path.join(target_dir, f_name0 )
+        plt.savefig(target_dir0)
+        #plt.show()
 
-    plt.close()
+        plt.close()
 
     #Residuals
-    plt.scatter( range(0 + bPar['test_start'], bPar['test_start'] +  len(res30) ), res30, color = 'green', label = 'residuals for Stateful LSTM')
+    print('max(res1)')
+    print(max(res1))
+    plt.scatter( range(1  + bPar['test_start'], 1  + bPar['test_start'] +  len(res30) ), res30, alpha = 0.3, color = 'green', label = '30-Day Residuals')
+    plt.scatter( range(16 + bPar['test_start'], 16 + bPar['test_start'] +  len(res15) ), res15, alpha = 0.3, color = 'blue',  label = '15-Day Residuals')
+    plt.scatter( range(30 + bPar['test_start'], 30 + bPar['test_start'] +  len(res1 ) ), res1,  alpha = 0.5, color = 'red' ,  label = ' 1-Day Residuals')
+    plt.axvline(x = 2130 + 31)
+    plt.axvline(x = 2246 + 31) 
+#    plt.axvline(x = 2347)
+
+    plt.legend()
     plt.title('Residuals for Stateful LSTM Predicting Tesla Stock Price')
     plt.xlabel('Market Days After IPO')
     plt.ylabel('Residuals')
@@ -194,6 +221,17 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
     plt.savefig(target_dir0)
     #plt.show()
     plt.close()
+
+    plt.scatter( y_test1, y_hat_linear1_test, alpha = 0.35, label = '1-Day Predicted vs Actual')
+    plt.plot( y_test1, y_test1, alpha = 0.5, color = 'grey')
+    plt.xlabel('Actual Values')
+    plt.ylabel('Predicted Values')
+    plt.title('1-Day Predicted vs Actual Values')
+    f_name0 = pre_name + 'Pred_v_actual.png'
+    target_dir0 = os.path.join(target_dir, f_name0)
+    plt.savefig(target_dir0)
+    plt.close()
+
 
     return(R2_30, R2_15, R2_1)
 ####################################################################################################################################################
@@ -208,6 +246,10 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
 this_dir = os.path.dirname(os.path.realpath('__file__') )
 target_dir = os.path.join(this_dir, 'TSLA/TSLA.csv')
 TSLA = pd.read_csv(target_dir, delimiter=',') 
+print ('TSLA price spike')
+print(max(TSLA.daily_change))
+print (TSLA.daily_change > 100)
+
 # VISUALIZATION
 target_dir = os.path.join(this_dir, 'TSLA_Visuals/TSLA.csv')
 ensure_dir_exists(target_dir)
@@ -216,7 +258,7 @@ target_dir = os.path.join(this_dir, 'TSLA_Visuals/General_Stock_Price.png')
 plt.plot_date(TSLA.date, TSLA.close, fmt = '-r', label = 'TESLA Stock Price')
 plt.title('TESLA stock price over time')
 plt.xticks(TSLA.date[0:len(TSLA):500])
-plt.xlabel('Time (Days)')
+plt.xlabel('Date')
 plt.ylabel('Tesla price (open, high, low, close)')
 plt.legend()
 plt.savefig(target_dir)
@@ -225,7 +267,7 @@ plt.close()
 # next visual
 target_dir = os.path.join(this_dir, 'TSLA_Visuals/General_Daily_Change')
 
-plt.plot_date(TSLA.date, TSLA.day_range, fmt = '.b', label = 'Tesla: Daily Change')
+plt.plot_date(TSLA.date, TSLA.daily_change, fmt = '.b', label = 'Tesla: Daily Change')
 plt.title('Tesla: Daily Price Change')
 plt.xticks(TSLA.date[0:len(TSLA):500])
 plt.xlabel('Date')
