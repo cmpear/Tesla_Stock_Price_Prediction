@@ -64,8 +64,8 @@ def streamlined_model(data, bPar, epochs, df_name):
     df_scaled = sc.fit_transform(np.float64(data) )
 
 
-    print('head of normalized training data')
-    print(df_scaled[0:15])
+#    print('head of normalized training data')
+#    print(df_scaled[0:15])
     # numpy arrays don't have heads, only pandas
 
     X_all = []
@@ -168,10 +168,10 @@ TSLA = pd.read_csv(target_dir, delimiter=',')
 TSLA.columns = ['date','open','high','low','close','adj_close','volume']
 
 TSLA['date'] = pd.to_datetime(TSLA.date)
+TSLA['daily_change'] = TSLA['close'] - TSLA['open']
 TSLA['days_after_ipo'] = TSLA.date - datetime.datetime(2010, 1, 29)
 TSLA.days_after_ipo = TSLA.days_after_ipo // np.timedelta64(1, 'D')
 TSLA.days_after_ipo = TSLA.days_after_ipo.astype('int')
-TSLA['daily_change'] = TSLA['close'] - TSLA['open']
 ####################################################################################################################################################
 # SAVE CLEANED DATA #
 ####################################################################################################################################################
@@ -186,22 +186,11 @@ epochs = 120
 
 bPar = batch_params (TSLA, batch_size = 64, timesteps = 32, test_percent = 0.1)
 ####################################################################################################################################################
-# DESCRIBE DATA #
-####################################################################################################################################################
-
-print(TSLA.head())
-#print(TSLA.isnull().values.any())
-#print(range(TSLA.date))
-print(TSLA.describe())
-#print(TSLA.describe(include= 'all'))
-print(TSLA.dtypes)
-print(TSLA.corr())
-
-####################################################################################################################################################
 # CREATE AND SAVE MODELS #
 ####################################################################################################################################################
 streamlined_model (TSLA.iloc[:,4:5].values, bPar, epochs, 'TSLA')
 
-streamlined_model (TSLA.iloc[:,9:10].values, bPar, epochs, 'TSLA_daily_change')
+streamlined_model (TSLA.iloc[:,8:9].values, bPar, epochs, 'TSLA_daily_change')
 
-print("GOT TO THE END!!!")
+# using this method to get the right shape only works if we are not referencing the last column.  Fix in next version.
+#print("GOT TO THE END!!!")

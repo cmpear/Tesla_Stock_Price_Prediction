@@ -79,7 +79,7 @@ def ensure_dir_exists(dir):
 ####################################################################################################################################################
 def data_division_plot(bPar, target_dir, title = 'Sample Sizes of Data'):
     # Visualising the Batches
-    plt.bar ( ['scraps','test','train','future'], [bPar['scrap_end'], bPar['test_end'] - bPar['test_start'], bPar['train_end'] - bPar['train_start'], bPar['future_end'] - bPar['future_start'] ]  ,  label = 'Sample Sizes')
+    plt.bar ( ['scraps','train','test','future'], [bPar['scrap_end'], bPar['train_end'] - bPar['train_start'], bPar['test_end'] - bPar['test_start'], bPar['future_end'] - bPar['future_start'] ]  ,  label = 'Sample Sizes')
     plt.title(title)
     plt.xlabel('Samples')
     plt.ylabel('Cases')
@@ -138,7 +138,7 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
     y_test1 = X_plot[ bPar['test_start'] - bPar['train_start'] +1: bPar['test_end'] - bPar['train_start'] +1 ]
 
     res1 = y_test1 - y_hat_linear1_test
-    R2_1 = 1 - sum( (res30) ** 2 ) / sum( (y_test1 - np.mean(y_test1 ) ) ** 2 )
+    R2_1 = 1 - sum( (res1) ** 2 ) / sum( (y_test1 - np.mean(y_test1 ) ) ** 2 )
     # # this would work better, be more accurate, if we were predicting changes.
     print("R^2 for 30-day prediction")
     print(R2_30)
@@ -149,7 +149,6 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
 
     # # Visualising the results
     if (points):
-        print('SHOULD HAVE DOTS')
 #        plt.scatter( range(15, 15+len(X_plot)), y_hat_linear15[0 : ].astype(float), color = 'blue', alpha = 0.1, label = '15-Day Predicted Change')
         plt.scatter( range(1, 1+len(X_plot)), y_hat_linear1[0 : ].astype(float), color = 'green', alpha = 0.1, label = '1-Day Predicted Change')
         plt.scatter( range(0, len(X_plot)), X_plot, color = 'red', alpha = 0.1, label = 'Real Change')
@@ -175,7 +174,8 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
         #plt.show()
         plt.close()
     else:
-        plt.plot( range(15 + 750, 15+len(X_plot)), y_hat_linear15[750 : ].astype(float), color = 'blue',  label = '15-day prediction')
+#        plt.plot( range(15 + 750, 15+len(X_plot)), y_hat_linear15[750 : ].astype(float), color = 'blue',  label = '15-day prediction')
+        plt.plot( range( 1 + 750,  1+len(X_plot)), y_hat_linear1[750  : ].astype(float), color = 'purple', label = '1-day prediction')
         plt.plot( range(30 + 750, 30+len(X_plot)), y_hat_linear30[750 : ].astype(float), color = 'green', label = '30-day prediction')
         plt.plot( range(0 + 750, len(X_plot)), X_plot[750:], color = 'red', label = 'Real Tesla Stock Price')
         plt.title('Predicted vs Real Prices')
@@ -184,9 +184,8 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
         plt.axvline(x = bPar['train_end'] - bPar['train_start'])
         plt.axvline(x = bPar['test_end'] - bPar['train_start'])
 
-        plt.text(x = (bPar['train_start'] + bPar['train_end'])/2, y = .20, s = 'training')
-        plt.text(x = bPar['test_start'], y = .20, s = 'testing')
-        plt.text(x = (bPar['future_start'] *2 + bPar['future_end'])/3, y = .20, s = 'future')
+        plt.text(x = (bPar['train_start'] + bPar['train_end'])/2, y = 100, s = 'training')
+        plt.text(x = bPar['test_start'], y = 100, s = 'testing')
 
         plt.title('Predicted vs Real Prices')
         plt.xlabel('Market Days After IPO')
@@ -201,12 +200,40 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
 
         plt.close()
 
+        plt.plot( range( 1 + bPar['test_start'], 1 +len(X_plot)), y_hat_linear1[bPar[ 'test_start'] : ].astype(float), color = 'purple',label = ' 1-day prediction')
+        plt.plot( range(15 + bPar['test_start'], 15+len(X_plot)), y_hat_linear15[bPar['test_start'] : ].astype(float), color = 'blue',  label = '15-day prediction')
+        plt.plot( range(30 + bPar['test_start'], 30+len(X_plot)), y_hat_linear30[bPar['test_start'] : ].astype(float), color = 'green', label = '30-day prediction')
+        plt.plot( range( 0 + bPar['test_start'],  0+len(X_plot)), X_plot[bPar['test_start'] : ], color = 'red', label = 'Real Tesla Stock Price')
+        plt.title('Predicted vs Real Prices: Closer Look')
+        plt.xlabel('Market Days After IPO')
+        plt.ylabel('Tesla Stock Price')
+
+        i = bPar['test_start'] - bPar['scrap_end'] + 64
+        while i < bPar['future_end']:
+            plt.axvline(x = i, alpha = 0.5)
+            i+=64
+
+        plt.title('Predicted vs Real Prices')
+        plt.xlabel('Market Days After IPO')
+        plt.ylabel('Tesla Stock Price')
+        plt.legend()
+
+
+
+        ensure_dir_exists(target_dir)
+        f_name0 = pre_name + 'Predictions_Zoomed.png'
+        target_dir0 = os.path.join(target_dir, f_name0 )
+        plt.savefig(target_dir0)
+        #plt.show()
+
+        plt.close()
+
+
+
     #Residuals
-    print('max(res1)')
-    print(max(res1))
     plt.scatter( range(1  + bPar['test_start'], 1  + bPar['test_start'] +  len(res30) ), res30, alpha = 0.3, color = 'green', label = '30-Day Residuals')
     plt.scatter( range(16 + bPar['test_start'], 16 + bPar['test_start'] +  len(res15) ), res15, alpha = 0.3, color = 'blue',  label = '15-Day Residuals')
-    plt.scatter( range(30 + bPar['test_start'], 30 + bPar['test_start'] +  len(res1 ) ), res1,  alpha = 0.5, color = 'red' ,  label = ' 1-Day Residuals')
+    plt.scatter( range(30 + bPar['test_start'], 30 + bPar['test_start'] +  len(res1 ) ), res1,  alpha = 0.5, color = 'purple' ,  label = ' 1-Day Residuals')
     plt.axvline(x = 2130 + 31)
     plt.axvline(x = 2246 + 31) 
 #    plt.axvline(x = 2347)
@@ -240,17 +267,23 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
 ####################################################################################################################################################
 ####################################################################################################################################################
 ####################################################################################################################################################
-# RELOADING & EXPLORATORY DATA VISUALIZATION #
+# RELOADING DATA #
 ####################################################################################################################################################
 # RELOADING
 this_dir = os.path.dirname(os.path.realpath('__file__') )
 target_dir = os.path.join(this_dir, 'TSLA/TSLA.csv')
 TSLA = pd.read_csv(target_dir, delimiter=',') 
-print ('TSLA price spike')
-print(max(TSLA.daily_change))
-print (TSLA.daily_change > 100)
-
-# VISUALIZATION
+####################################################################################################################################################
+# DESCRIBE DATA #
+####################################################################################################################################################
+print(TSLA.head())
+print(TSLA.isnull().values.any())
+print(TSLA.describe())
+print(TSLA.dtypes)
+print(TSLA.corr())
+####################################################################################################################################################
+# VISUALIZATION #
+####################################################################################################################################################
 target_dir = os.path.join(this_dir, 'TSLA_Visuals/TSLA.csv')
 ensure_dir_exists(target_dir)
 target_dir = os.path.join(this_dir, 'TSLA_Visuals/General_Stock_Price.png')
@@ -264,7 +297,7 @@ plt.legend()
 plt.savefig(target_dir)
 plt.close()
 
-# next visual
+# NEXT VISUAL #
 target_dir = os.path.join(this_dir, 'TSLA_Visuals/General_Daily_Change')
 
 plt.plot_date(TSLA.date, TSLA.daily_change, fmt = '.b', label = 'Tesla: Daily Change')
@@ -284,8 +317,6 @@ y = np.array(TSLA['close'])
 
 x = np.reshape(x, (-1, 1) )
 y = np.reshape(y, (-1, 1) )
-print(x.shape)
-print(y.shape)
 reg = LinearRegression()
 
 #x = TSLA.date.reshape(-1,1)
@@ -296,12 +327,13 @@ reg.fit( x, y )
 pred = reg.predict(x)
 MSE = sum( (pred - y) ** 2) / len(x)
 R2 = 1 - sum( (pred - y) ** 2 ) / sum( (y - sum(y) / len(y) ) **2 )
+print('Regression Performance')
 print(MSE)
 print(R2)
 plt.plot(x, y, color = 'red', label = 'Real Tesla Stock Price')
 plt.plot(x, pred, color = 'green', label = 'Predicted Tesla Stock Price')
 plt.title('Real vs Predicted Tesla Stock Price')
-plt.xlabel('Date')
+plt.xlabel('Market Days After IPO')
 plt.ylabel('Stock Price')
 plt.legend()
 target_dir = os.path.join(this_dir, 'TSLA_Visuals/TSLA_Closing_Reg_Predictions.png')
@@ -324,4 +356,3 @@ regressor_mae, X_all, y_all, bPar, sc   =   load_data('TSLA_daily_change')
 pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, 'TSLA_Daily_Change', points = True)
 
 # # export DISPLAY=localhost:0.0 (add to ~/.bashrc to make permanent)
-print(" GOT TO THE END!!!")
