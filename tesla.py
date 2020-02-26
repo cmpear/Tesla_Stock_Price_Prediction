@@ -188,9 +188,12 @@ bPar = batch_params (TSLA, batch_size = 64, timesteps = 32, test_percent = 0.1)
 ####################################################################################################################################################
 # CREATE AND SAVE MODELS #
 ####################################################################################################################################################
+#print(TSLA.head())
 streamlined_model (TSLA.iloc[:,4:5].values, bPar, epochs, 'TSLA')
 
-streamlined_model (TSLA.iloc[:,8:9].values, bPar, epochs, 'TSLA_daily_change')
+#print(TSLA.iloc[:,8:9].values)
+
+streamlined_model (TSLA.iloc[:,7:8].values, bPar, epochs, 'TSLA_daily_change')
 
 # using this method to get the right shape only works if we are not referencing the last column.  Fix in next version.
 #print("GOT TO THE END!!!")

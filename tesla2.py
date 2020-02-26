@@ -24,7 +24,7 @@ from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
-
+import math
 from keras.layers import Dense
 from keras.layers import Input, LSTM
 from keras.models import Model
@@ -150,11 +150,11 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
     # # Visualising the results
     if (points):
 #        plt.scatter( range(15, 15+len(X_plot)), y_hat_linear15[0 : ].astype(float), color = 'blue', alpha = 0.1, label = '15-Day Predicted Change')
-        plt.scatter( range(1, 1+len(X_plot)), y_hat_linear1[0 : ].astype(float), color = 'green', alpha = 0.1, label = '1-Day Predicted Change')
-        plt.scatter( range(0, len(X_plot)), X_plot, color = 'red', alpha = 0.1, label = 'Real Change')
+        plt.scatter( range(1, 1+len(X_plot)), np.cbrt(y_hat_linear1[0 : ].astype(float)), color = 'green', alpha = 0.1, label = '1-Day Predicted Change')
+        plt.scatter( range(0, len(X_plot)), np.cbrt(X_plot), color = 'red', alpha = 0.1, label = 'Real Change')
         plt.title('Predicted vs Real Daily Price Change')
         plt.xlabel('Market Days After IPO')
-        plt.ylabel('Closing - Opening Price')
+        plt.ylabel('Closing - Opening Price (cube root)')
         plt.axvline(x = bPar['train_end'] - bPar['train_start'])
         plt.axvline(x = bPar['test_end'] - bPar['train_start'])
 
@@ -164,7 +164,7 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
 
         plt.title('Predicted vs Real Prices')
         plt.xlabel('Market Days After IPO')
-        plt.ylabel('Daily Price Change')
+        plt.ylabel('Daily Price Change (cube root)')
         plt.legend()
 
         ensure_dir_exists(target_dir)
@@ -298,7 +298,7 @@ plt.savefig(target_dir)
 plt.close()
 
 # NEXT VISUAL #
-target_dir = os.path.join(this_dir, 'TSLA_Visuals/General_Daily_Change')
+target_dir = os.path.join(this_dir, 'TSLA_Visuals/General_Daily_Change.png')
 
 plt.plot_date(TSLA.date, TSLA.daily_change, fmt = '.b', label = 'Tesla: Daily Change')
 plt.title('Tesla: Daily Price Change')
@@ -309,6 +309,21 @@ plt.legend()
 plt.savefig(target_dir)
 plt.close()
 
+# HISTOGRAMS
+target_dir = os.path.join(this_dir, 'TSLA_Visuals/close_histograms.png')
+n_bins = 20
+
+target_dir = os.path.join(this_dir, 'TSLA_Visuals/close_histograms.png')
+
+plt.hist(TSLA.close, bins=n_bins)
+plt.title('closing')
+plt.savefig(target_dir)
+plt.close()
+target_dir = os.path.join(this_dir, 'TSLA_Visuals/daily_change_histograms.png')
+plt.hist(TSLA.daily_change, bins=n_bins)
+plt.title('daily_change')
+plt.savefig(target_dir)
+plt.close()
 ####################################################################################################################################################
 # REGRESSION ANALYSIS & VISUALIZATION #
 ####################################################################################################################################################
