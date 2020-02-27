@@ -154,7 +154,7 @@ def pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, pre_name, points
         plt.scatter( range(0, len(X_plot)), np.cbrt(X_plot), color = 'red', alpha = 0.1, label = 'Real Change')
         plt.title('Predicted vs Real Daily Price Change')
         plt.xlabel('Market Days After IPO')
-        plt.ylabel('Closing - Opening Price (cube root)')
+        plt.ylabel('Closing Price Change (cube root)')
         plt.axvline(x = bPar['train_end'] - bPar['train_start'])
         plt.axvline(x = bPar['test_end'] - bPar['train_start'])
 
@@ -304,7 +304,7 @@ plt.plot_date(TSLA.date, TSLA.daily_change, fmt = '.b', label = 'Tesla: Daily Ch
 plt.title('Tesla: Daily Price Change')
 plt.xticks(TSLA.date[0:len(TSLA):500])
 plt.xlabel('Date')
-plt.ylabel('Closing Price - Opening Price')
+plt.ylabel('Closing Price Change')
 plt.legend()
 plt.savefig(target_dir)
 plt.close()

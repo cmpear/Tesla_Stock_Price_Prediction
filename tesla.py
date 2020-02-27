@@ -104,9 +104,9 @@ def streamlined_model(data, bPar, epochs, df_name):
     inputs_1_mae = Input(batch_shape=(bPar['batch_size'], bPar['timesteps'],1) )
     #each layer is the input of the next layer
     lstm_1_mae = LSTM(10, stateful=True, return_sequences=True)(inputs_1_mae)
-    dropout_1 = Dropout(0.3)(lstm_1_mae)
+    dropout_1 = Dropout(0.1)(lstm_1_mae)
     lstm_2_mae = LSTM(10, stateful=True, return_sequences=True)(dropout_1)
-    dropout_2 = Dropout(0.3)(lstm_2_mae)
+    dropout_2 = Dropout(0.1)(lstm_2_mae)
     # units, essentially dimensions
     output_1_mae = Dense(units = 1)(dropout_2)
 
@@ -169,10 +169,15 @@ TSLA = pd.read_csv(target_dir, delimiter=',')
 TSLA.columns = ['date','open','high','low','close','adj_close','volume']
 
 TSLA['date'] = pd.to_datetime(TSLA.date)
-TSLA['daily_change'] = TSLA['close'] - TSLA['open']
+TSLA['daily_change'] = TSLA['close'].shift(periods = 1)
+TSLA['daily_change'][0] = TSLA['open'][0]
+TSLA['daily_change'] = TSLA['close'] - TSLA['daily_change']
 TSLA['days_after_ipo'] = TSLA.date - datetime.datetime(2010, 1, 29)
 TSLA.days_after_ipo = TSLA.days_after_ipo // np.timedelta64(1, 'D')
 TSLA.days_after_ipo = TSLA.days_after_ipo.astype('int')
+
+#print(TSLA['daily_change'])
+
 ####################################################################################################################################################
 # SAVE CLEANED DATA #
 ####################################################################################################################################################
@@ -192,7 +197,7 @@ bPar = batch_params (TSLA, batch_size = 64, timesteps = 32, test_percent = 0.1)
 #print(TSLA.head())
 streamlined_model (TSLA.iloc[:,4:5].values, bPar, epochs, 'TSLA')
 
-#print(TSLA.iloc[:,8:9].values)
+#print(TSLA.iloc[:,7:8].values)
 
 streamlined_model (TSLA.iloc[:,7:8].values, bPar, epochs, 'TSLA_daily_change')
 
