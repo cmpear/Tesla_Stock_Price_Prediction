@@ -92,7 +92,7 @@ def streamlined_model(data, bPar, epochs, df_name):
 
     # Building the LSTM
     # Importing the Keras libraries and packages
-    from keras.layers import Dense
+    from keras.layers import Dense, Dropout
     from keras.layers import Input, LSTM
     from keras.models import Model
     import h5py
@@ -104,10 +104,11 @@ def streamlined_model(data, bPar, epochs, df_name):
     inputs_1_mae = Input(batch_shape=(bPar['batch_size'], bPar['timesteps'],1) )
     #each layer is the input of the next layer
     lstm_1_mae = LSTM(10, stateful=True, return_sequences=True)(inputs_1_mae)
-    lstm_2_mae = LSTM(10, stateful=True, return_sequences=True)(lstm_1_mae)
-
+    dropout_1 = Dropout(0.3)(lstm_1_mae)
+    lstm_2_mae = LSTM(10, stateful=True, return_sequences=True)(dropout_1)
+    dropout_2 = Dropout(0.3)(lstm_2_mae)
     # units, essentially dimensions
-    output_1_mae = Dense(units = 1)(lstm_2_mae)
+    output_1_mae = Dense(units = 1)(dropout_2)
 
     regressor_mae = Model(inputs=inputs_1_mae, outputs = output_1_mae)
 
