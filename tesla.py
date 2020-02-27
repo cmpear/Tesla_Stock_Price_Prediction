@@ -140,14 +140,17 @@ def streamlined_model(data, bPar, epochs, df_name):
     target_dir = os.path.join(this_dir, model_name)
     regressor_mae.save(filepath=target_dir)
 
-    target_dir = os.path.join(this_dir, 'X_all.csv')
-    pickle.dump(X_all, open (target_dir, 'wb') )
+    target_dir = os.path.join(this_dir, 'X_all.npy')
+#    pickle.dump(X_all, open (target_dir, 'wb') )
+    np.save(target_dir, X_all)
 
-    target_dir = os.path.join(this_dir, 'y_all.csv')    
-    pickle.dump(y_all, open (target_dir, 'wb') )
+    target_dir = os.path.join(this_dir, 'y_all.npy')    
+ #   pickle.dump(y_all, open (target_dir, 'wb') )
+    np.save(target_dir, y_all)
 
     target_dir = os.path.join(this_dir, 'bPar.json')
-    pickle.dump(bPar, open (target_dir, 'wb') )
+#    pickle.dump(bPar, open (target_dir, 'wb') )
+    json.dump(bPar, open(target_dir, 'w') )
 
     target_dir = os.path.join(this_dir, 'sc.save')
     joblib.dump(sc, target_dir)
