@@ -142,7 +142,7 @@ def streamlined_model(data, bPar, epochs, df_name):
 
     model_name = df_name + '_scaled.csv'
     target_dir = os.path.join(this_dir, model_name)
-    np.save(target_dir, data)
+    np.savetxt(target_dir, data, delimiter = ',')
 
     target_dir = os.path.join(this_dir, 'X_all.npy')
 #    pickle.dump(X_all, open (target_dir, 'wb') )
