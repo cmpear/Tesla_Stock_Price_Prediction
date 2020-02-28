@@ -62,9 +62,6 @@ def load_data(df_name):
     target_dir = os.path.join(this_dir, 'sc.save')
     sc = joblib.load(target_dir) 
 
-    target_dir = os.path.dirname(os.path.realpath('__file__') )
-    rel_dir = 'data/TSLA.csv'
-    target_dir = os.path.join(target_dir, rel_dir)
     return (regressor_mae, X_all, y_all, bPar, sc)
 ####################################################################################################################################################
 # ensure_dir_exists: checks a target director to make a file, creates it

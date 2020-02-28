@@ -154,6 +154,16 @@ def streamlined_model(data, bPar, epochs, df_name):
 
     target_dir = os.path.join(this_dir, 'sc.save')
     joblib.dump(sc, target_dir)
+
+    model_name = df_name + '_with_mae_32_ts.json'
+    target_dir = os.path.join(this_dir, model_name)
+    model_json = regressor_mae.to_json()
+    with open (target_dir, 'w') as json_file:
+        json_file.write(model_json)
+    model_name = df_name + '_weights.h5'
+    target_dir = os.path.join(this_dir, model_name)
+    regressor_mae.save_weights(target_dir)
+    
 ####################################################################################################################################################
 ####################################################################################################################################################
 # MAIN #
