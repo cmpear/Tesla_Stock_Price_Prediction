@@ -140,6 +140,10 @@ def streamlined_model(data, bPar, epochs, df_name):
     target_dir = os.path.join(this_dir, model_name)
     regressor_mae.save(filepath=target_dir)
 
+    model_name = df_name + '_scaled.csv'
+    target_dir = os.path.join(this_dir, model_name)
+    np.save(target_dir, data)
+
     target_dir = os.path.join(this_dir, 'X_all.npy')
 #    pickle.dump(X_all, open (target_dir, 'wb') )
     np.save(target_dir, X_all)
@@ -189,8 +193,6 @@ TSLA['days_after_ipo'] = TSLA.date - datetime.datetime(2010, 1, 29)
 TSLA.days_after_ipo = TSLA.days_after_ipo // np.timedelta64(1, 'D')
 TSLA.days_after_ipo = TSLA.days_after_ipo.astype('int')
 
-#print(TSLA['daily_change'])
-
 ####################################################################################################################################################
 # SAVE CLEANED DATA #
 ####################################################################################################################################################
@@ -198,7 +200,7 @@ this_dir = os.path.dirname(os.path.realpath('__file__') )
 target_dir = os.path.join(this_dir, 'TSLA/')
 ensure_dir_exists(target_dir)
 target_dir = os.path.join(target_dir, 'TSLA.csv')
-TSLA.to_csv(target_dir)
+TSLA.to_csv(target_dir, index = False)   # index = False does not seem to work here...version problem?
 
 # decided to have batch_size be a multiple of timesteps
 epochs = 120
@@ -207,10 +209,11 @@ bPar = batch_params (TSLA, batch_size = 64, timesteps = 32, test_percent = 0.1)
 ####################################################################################################################################################
 # CREATE AND SAVE MODELS #
 ####################################################################################################################################################
+
 #print(TSLA.head())
+#print(TSLA.shape)
 streamlined_model (TSLA.iloc[:,4:5].values, bPar, epochs, 'TSLA')
 
-#print(TSLA.iloc[:,7:8].values)
 
 streamlined_model (TSLA.iloc[:,7:8].values, bPar, epochs, 'TSLA_daily_change')
 
