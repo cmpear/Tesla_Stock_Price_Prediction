@@ -10,6 +10,11 @@ import os
 from keras.preprocessing import sequence
 from keras.models import load_model
 import matplotlib.pyplot as plt
+from keras.layers import Dense, Dropout
+from keras.layers import Input, LSTM
+from keras.models import Model
+import h5py
+
 
 ####################################################################################################################################################
 ####################################################################################################################################################
@@ -64,10 +69,6 @@ def streamlined_model(data, bPar, epochs, df_name):
     df_scaled = sc.fit_transform(np.float64(data) )
 
 
-#    print('head of normalized training data')
-#    print(df_scaled[0:15])
-    # numpy arrays don't have heads, only pandas
-
     X_all = []
     y_all = []
 
@@ -92,28 +93,14 @@ def streamlined_model(data, bPar, epochs, df_name):
 
     # Building the LSTM
     # Importing the Keras libraries and packages
-    from keras.layers import Dense, Dropout
-    from keras.layers import Input, LSTM
-    from keras.models import Model
-    import h5py
-
-    # Initialising the LSTM Model with MAE Loss-Function
-    # Using Functional API  ##### two APIs in Keras, one is sequential, other is function
-    # can do much easier and complicated things with functional api`
-
     inputs_1_mae = Input(batch_shape=(bPar['batch_size'], bPar['timesteps'],1) )
-    #each layer is the input of the next layer
     lstm_1_mae = LSTM(10, stateful=True, return_sequences=True)(inputs_1_mae)
     dropout_1 = Dropout(0.1)(lstm_1_mae)
     lstm_2_mae = LSTM(10, stateful=True, return_sequences=True)(dropout_1)
     dropout_2 = Dropout(0.1)(lstm_2_mae)
-    # units, essentially dimensions
     output_1_mae = Dense(units = 1)(dropout_2)
 
     regressor_mae = Model(inputs=inputs_1_mae, outputs = output_1_mae)
-
-    #adam is fast starting off and then gets slower and more precise
-    #mae -> mean absolute error loss function
     regressor_mae.compile(optimizer='adam', loss = 'mae')
     regressor_mae.summary()
 
@@ -148,7 +135,6 @@ def streamlined_model(data, bPar, epochs, df_name):
     target_dir = os.path.join(this_dir, model_name)
     np.save(target_dir, data)
 
-
     target_dir = os.path.join(this_dir, 'X_all.npy')
 #    pickle.dump(X_all, open (target_dir, 'wb') )
     np.save(target_dir, X_all)
@@ -179,9 +165,8 @@ def streamlined_model(data, bPar, epochs, df_name):
 ####################################################################################################################################################
 ####################################################################################################################################################
 ####################################################################################################################################################
-# RETRIEVE DATA #
+# ETL #
 ####################################################################################################################################################
-
 this_dir = os.path.dirname(os.path.realpath('__file__') )
 target_dir = os.path.join(this_dir, 'data/TSLA.csv')
 TSLA = pd.read_csv(target_dir, delimiter=',') 
@@ -189,7 +174,6 @@ TSLA = pd.read_csv(target_dir, delimiter=',')
 # FEATURE CREATION #
 ####################################################################################################################################################
 TSLA.columns = ['date','open','high','low','close','adj_close','volume']
-
 TSLA['date'] = pd.to_datetime(TSLA.date)
 TSLA['daily_change'] = TSLA['close'].shift(periods = 1)
 TSLA['daily_change'][0] = TSLA['open'][0]
@@ -205,22 +189,11 @@ this_dir = os.path.dirname(os.path.realpath('__file__') )
 target_dir = os.path.join(this_dir, 'TSLA/')
 ensure_dir_exists(target_dir)
 target_dir = os.path.join(target_dir, 'TSLA.csv')
-TSLA.to_csv(target_dir, index = False)   # index = False does not seem to work here...version problem?
-
-# decided to have batch_size be a multiple of timesteps
-epochs = 120
-
-bPar = batch_params (TSLA, batch_size = 64, timesteps = 32, test_percent = 0.1)
+TSLA.to_csv(target_dir, index = False)   # index = False does not always work when run...
 ####################################################################################################################################################
 # CREATE AND SAVE MODELS #
 ####################################################################################################################################################
-
-#print(TSLA.head())
-#print(TSLA.shape)
+epochs = 120
+bPar = batch_params (TSLA, batch_size = 64, timesteps = 32, test_percent = 0.1)
 streamlined_model (TSLA.iloc[:,4:5].values, bPar, epochs, 'TSLA')
-
-
 streamlined_model (TSLA.iloc[:,7:8].values, bPar, epochs, 'TSLA_daily_change')
-
-# using this method to get the right shape only works if we are not referencing the last column.  Fix in next version.
-#print("GOT TO THE END!!!")
