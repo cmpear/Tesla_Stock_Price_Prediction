@@ -1,1 +1,0 @@
-{"batch_size": 64, "timesteps": 32, "test_percent": 0.1, "future_end": 2416, "future_start": 2352, "test_end": 2352, "batches": 36, "train_start": 48, "train_end": 2096, "test_start": 2096, "scrap_end": 48}

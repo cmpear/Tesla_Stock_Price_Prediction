@@ -27,7 +27,7 @@ from sklearn.model_selection import train_test_split
 import math
 from keras.layers import Dense
 from keras.layers import Input, LSTM
-from keras.models import Model
+from keras.models import Model, model_from_json
 import pickle
 import os
 import h5py
@@ -41,28 +41,48 @@ from sklearn.externals import joblib # for loading the minmaxscalar
 # LOAD DATA: gathers up key variables from tesla.py and returns them
 #            not a user-friendly function
 ####################################################################################################################################################
-def load_data(df_name):
+def load_data(stock_name, model_name, load_dataset = False):
     this_dir = os.path.dirname(os.path.realpath('__file__') )
-    rel_dir = df_name + '/'
-    this_dir = os.path.join(this_dir, rel_dir)
-    model_name = df_name + '_with_mae_32_ts.h5'
+    this_dir = os.path.join(this_dir, stock_name)
 
-    target_dir = os.path.join(this_dir, model_name)
-    regressor_mae = load_model(target_dir)
+    this_dir = os.path.join(this_dir, model_name)
+    prefix = stock_name + '_' + model_name + '_'
 
-    target_dir = os.path.join(this_dir, 'X_all.csv')
-    X_all = pickle.load(open (target_dir, 'rb') )
+    # LOAD MODEL    
+    f_name = stock_name + '_' + model_name + '_' + 'model.json'
+    target_dir = os.path.join(this_dir, f_name)
+    with open (target_dir, 'r') as json_file:
+        model = json_file.read()
+    model = model_from_json(model)
+    f_name = stock_name + '_' + model_name + '_weights.h5'
+    target_dir = os.path.join(this_dir, f_name)
+    model.load_weights(target_dir)
+    # LOAD X_all and y_all
+    f_name = prefix + 'X_all.npy'
+    target_dir = os.path.join(this_dir, f_name)
+    X_all = np.load(target_dir)
 
-    target_dir = os.path.join(this_dir, 'y_all.csv')
-    y_all = pickle.load(open (target_dir, 'rb'))
+    f_name = prefix + 'y_all.npy'
+    target_dir = os.path.join(this_dir, f_name)
+    y_all = np.load(target_dir)
+    # LOAD bPar and sc
+    f_name = prefix + 'bPar.pickle'
+    target_dir = os.path.join(this_dir, f_name)
+    with open (target_dir, 'rb') as handle:
+        bPar = pickle.load(handle)
 
-    target_dir = os.path.join(this_dir, 'bPar.json')
-    bPar = pickle.load(open (target_dir, 'rb') )
+    f_name = prefix + 'sc.save'
+    target_dir = os.path.join(this_dir, f_name)
+    sc = joblib.load(target_dir)
 
-    target_dir = os.path.join(this_dir, 'sc.save')
-    sc = joblib.load(target_dir) 
+    # GET DATASET
+    if (load_dataset):
+        f_name = stock_name + '.npy'
+        target_dir = os.path.join(this_dir, f_name)
+        dataset = pd.read_csv(target_dir, delimiter=',')
+        return (model, X_all, y_all, bPar, sc, dataset)
+    return(model, X_all, y_all, bPar, sc)
 
-    return (regressor_mae, X_all, y_all, bPar, sc)
 ####################################################################################################################################################
 # ensure_dir_exists: checks a target director to make a file, creates it
 #                    if it does not exist
@@ -357,13 +377,13 @@ plt.close()
 ####################################################################################################################################################
 # RELOADING
 target_dir = os.path.join(this_dir, 'TSLA_Visuals/')
-regressor_mae, X_all, y_all, bPar, sc   =   load_data('TSLA')
+regressor_mae, X_all, y_all, bPar, sc   =   load_data('TSLA', 'closing', load_dataset = False)
 # DATA DIVISION PLOT
 data_division_plot(bPar, target_dir, title = 'Sample Sizes of Data')
 # CLOSING PRICE VISUALIZATION
 pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, 'TSLA_Closing_Price', points = False)
 # REOADING
-regressor_mae, X_all, y_all, bPar, sc   =   load_data('TSLA_daily_change')
+regressor_mae, X_all, y_all, bPar, sc   =   load_data('TSLA', 'daily_change', load_dataset = False)
 # DAILY CHANGE VISUALIZATION
 pred_res(regressor_mae, bPar, sc, X_all, y_all, target_dir, 'TSLA_Daily_Change', points = True)
 

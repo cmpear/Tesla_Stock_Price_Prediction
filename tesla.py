@@ -14,6 +14,8 @@ from keras.layers import Dense, Dropout
 from keras.layers import Input, LSTM
 from keras.models import Model
 import h5py
+import pickle
+from sklearn.externals import joblib # for saving minmaxscalar
 
 
 ####################################################################################################################################################
@@ -114,51 +116,96 @@ def streamlined_model(data, bPar, epochs, df_name):
 
     #save model and data
 
-    import pickle
-    from sklearn.externals import joblib # for saving minmaxscalar
+    return (regressor_mae, X_all, y_all, sc)
+#     this_dir = os.path.dirname(os.path.realpath('__file__'))
+#     rel_dir = df_name + '/'
+#     this_dir = os.path.join(this_dir, rel_dir)
 
-    this_dir = os.path.dirname(os.path.realpath('__file__'))
-    rel_dir = df_name + '/'
-    this_dir = os.path.join(this_dir, rel_dir)
+#     ensure_dir_exists(this_dir)
 
+#     model_name = df_name + '_with_mae_32_ts.h5'
+#     target_dir = os.path.join(this_dir, model_name)
+#     regressor_mae.save(filepath=target_dir)
+
+#     # model_name = df_name + '_scaled.csv'
+#     # target_dir = os.path.join(this_dir, model_name)
+#     # np.savetxt(target_dir, data, delimiter = ',')
+
+#     model_name = df_name + '_scaled.npy'
+#     target_dir = os.path.join(this_dir, model_name)
+#     np.save(target_dir, data)
+
+#     target_dir = os.path.join(this_dir, 'X_all.npy')
+# #    pickle.dump(X_all, open (target_dir, 'wb') )
+#     np.save(target_dir, X_all)
+
+#     target_dir = os.path.join(this_dir, 'y_all.npy')    
+#  #   pickle.dump(y_all, open (target_dir, 'wb') )
+#     np.save(target_dir, y_all)
+
+#     target_dir = os.path.join(this_dir, 'bPar.json')
+# #    pickle.dump(bPar, open (target_dir, 'wb') )
+#     json.dump(bPar, open(target_dir, 'w') )
+
+#     target_dir = os.path.join(this_dir, 'sc.save')
+#     joblib.dump(sc, target_dir)
+
+#     model_name = df_name + '_with_mae_32_ts.json'
+#     target_dir = os.path.join(this_dir, model_name)
+#     model_json = regressor_mae.to_json()
+#     with open (target_dir, 'w') as json_file:
+#         json_file.write(model_json)
+#     model_name = df_name + '_weights.h5'
+#     target_dir = os.path.join(this_dir, model_name)
+#     regressor_mae.save_weights(target_dir)
+####################################################################################################################################################
+# save_data: saves a set of parameters for reloading later
+####################################################################################################################################################
+def save_data(stock_name, model_name, model, X_all, y_all, bPar, sc = None, scaled = None, dataset = None, save_data = False):
+    this_dir = os.path.dirname(os.path.realpath('__file__') )
+
+    this_dir = os.path.join(this_dir, stock_name)
+    ensure_dir_exists(this_dir)
+    if (save_data):
+        f_name = stock_name + '.csv' 
+        target_dir = os.path.join(this_dir, f_name)
+        dataset.to_csv(target_dir, index = False)
+
+    this_dir = os.path.join(this_dir, model_name)
     ensure_dir_exists(this_dir)
 
-    model_name = df_name + '_with_mae_32_ts.h5'
-    target_dir = os.path.join(this_dir, model_name)
-    regressor_mae.save(filepath=target_dir)
-
-    # model_name = df_name + '_scaled.csv'
-    # target_dir = os.path.join(this_dir, model_name)
-    # np.savetxt(target_dir, data, delimiter = ',')
-
-    model_name = df_name + '_scaled.npy'
-    target_dir = os.path.join(this_dir, model_name)
-    np.save(target_dir, data)
-
-    target_dir = os.path.join(this_dir, 'X_all.npy')
-#    pickle.dump(X_all, open (target_dir, 'wb') )
-    np.save(target_dir, X_all)
-
-    target_dir = os.path.join(this_dir, 'y_all.npy')    
- #   pickle.dump(y_all, open (target_dir, 'wb') )
-    np.save(target_dir, y_all)
-
-    target_dir = os.path.join(this_dir, 'bPar.json')
-#    pickle.dump(bPar, open (target_dir, 'wb') )
-    json.dump(bPar, open(target_dir, 'w') )
-
-    target_dir = os.path.join(this_dir, 'sc.save')
-    joblib.dump(sc, target_dir)
-
-    model_name = df_name + '_with_mae_32_ts.json'
-    target_dir = os.path.join(this_dir, model_name)
-    model_json = regressor_mae.to_json()
+    f_name = stock_name + '_' + model_name + '_model.json'
+    target_dir = os.path.join(this_dir, f_name)
+    model_json = model.to_json()
     with open (target_dir, 'w') as json_file:
         json_file.write(model_json)
-    model_name = df_name + '_weights.h5'
-    target_dir = os.path.join(this_dir, model_name)
-    regressor_mae.save_weights(target_dir)
+    f_name = stock_name + '_' + model_name + '_weights.h5'
+    target_dir = os.path.join(this_dir, f_name)
+    model.save_weights(target_dir)
+
+    prefix = stock_name + '_' + model_name + '_'
+    f_name = prefix + 'X_all.npy'
+    target_dir = os.path.join(this_dir, f_name)
+    np.save(target_dir, X_all)
+
+    f_name = prefix + 'y_all.npy'
+    target_dir = os.path.join(this_dir, f_name)
+    np.save(target_dir, y_all)
+
+    f_name = prefix + 'bPar.pickle' # was having annoying errors--pickle works easily though
+    target_dir = os.path.join(this_dir, f_name)
+    with open (target_dir, 'wb') as handle:
+        pickle.dump(bPar, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    if (sc != None):
+        f_name = prefix + 'sc.save'
+        target_dir = os.path.join(this_dir, f_name)
+        joblib.dump(sc, target_dir)
     
+    if (scaled != None):
+        f_name = prefix + 'scaled.npy'
+        target_dir = os.path.join(this_dir, f_name)
+        np.save(target_dir, scaled)
 ####################################################################################################################################################
 ####################################################################################################################################################
 # MAIN #
@@ -195,5 +242,9 @@ TSLA.to_csv(target_dir, index = False)   # index = False does not always work wh
 ####################################################################################################################################################
 epochs = 120
 bPar = batch_params (TSLA, batch_size = 64, timesteps = 32, test_percent = 0.1)
-streamlined_model (TSLA.iloc[:,4:5].values, bPar, epochs, 'TSLA')
-streamlined_model (TSLA.iloc[:,7:8].values, bPar, epochs, 'TSLA_daily_change')
+
+model, X_all, y_all, sc = streamlined_model (TSLA.iloc[:,4:5].values, bPar, epochs, 'TSLA')
+save_data('TSLA', 'closing', model, X_all, y_all, bPar, sc, dataset = TSLA, save_data = True)
+
+model, X_all, y_all, sc = streamlined_model (TSLA.iloc[:,7:8].values, bPar, epochs, 'TSLA_daily_change')
+save_data('TSLA', 'daily_change', model, X_all, y_all, bPar, sc)
